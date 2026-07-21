@@ -1,0 +1,71 @@
+// ClinicFlow — appointment scheduling.
+// SQLite for zero-config local runs; switch `provider` to "postgresql" for prod.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STAFF
+  ADMIN
+}
+
+enum AppointmentStatus {
+  BOOKED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  createdAt    DateTime @default(now())
+}
+
+model Provider {
+  id           String        @id @default(cuid())
+  name         String
+  specialty    String
+  // Working window + slot length, in minutes from midnight.
+  workStartMin Int           @default(540) // 09:00
+  workEndMin   Int           @default(1020) // 17:00
+  slotMinutes  Int           @default(30)
+  active       Boolean       @default(true)
+  appointments Appointment[]
+}
+
+model Patient {
+  id           String        @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+}
+
+model Appointment {
+  id         String            @id @default(cuid())
+  provider   Provider          @relation(fields: [providerId], references: [id])
+  providerId String
+  patient    Patient           @relation(fields: [patientId], references: [id])
+  patientId  String
+  // The calendar day (midnight) plus the time window within it, in minutes.
+  date       DateTime
+  startMin   Int
+  endMin     Int
+  status     AppointmentStatus @default(BOOKED)
+  reason     String?
+  createdAt  DateTime          @default(now())
+
+  @@index([providerId, date])
+  @@index([date])
+}
