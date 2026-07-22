@@ -63,9 +63,10 @@ model Patient {
   address      String?
   notes        String?
   createdAt    DateTime        @default(now())
-  appointments Appointment[]
-  records      MedicalRecord[]
-  invoices     Invoice[]
+  appointments  Appointment[]
+  records       MedicalRecord[]
+  invoices      Invoice[]
+  prescriptions Prescription[]
 }
 
 model MedicalRecord {
@@ -129,4 +130,38 @@ model InvoiceItem {
   description    String
   quantity       Int
   unitPriceCents Int
+}
+
+model Medicine {
+  id         String             @id @default(cuid())
+  name       String
+  sku        String             @unique
+  unit       String             @default("unit")
+  stock      Int                @default(0)
+  priceCents Int                @default(0)
+  createdAt  DateTime           @default(now())
+  items      PrescriptionItem[]
+}
+
+model Prescription {
+  id         String             @id @default(cuid())
+  number     String             @unique
+  patient    Patient            @relation(fields: [patientId], references: [id])
+  patientId  String
+  notes      String?
+  authorName String?
+  createdAt  DateTime           @default(now())
+  items      PrescriptionItem[]
+
+  @@index([patientId])
+}
+
+model PrescriptionItem {
+  id             String       @id @default(cuid())
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  prescriptionId String
+  medicine       Medicine     @relation(fields: [medicineId], references: [id])
+  medicineId     String
+  quantity       Int          @default(1)
+  dosage         String?
 }

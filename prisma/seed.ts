@@ -9,6 +9,9 @@ const pick = <T>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
 async function main() {
   console.log('Clearing…');
+  await prisma.prescriptionItem.deleteMany();
+  await prisma.prescription.deleteMany();
+  await prisma.medicine.deleteMany();
   await prisma.invoiceItem.deleteMany();
   await prisma.invoice.deleteMany();
   await prisma.appointment.deleteMany();
@@ -119,7 +122,38 @@ async function main() {
     invCount++;
   }
 
-  console.log(`Seeded ${providers.length} providers, ${patients.length} patients, ${count} appointments, ${invCount} invoices.`);
+  // Pharmacy inventory
+  const medData = [
+    { name: 'Paracetamol 500mg', sku: 'MED-0001', unit: 'tablet', stock: 240, priceCents: 500 },
+    { name: 'Amoxicillin 250mg', sku: 'MED-0002', unit: 'capsule', stock: 120, priceCents: 1200 },
+    { name: 'Ibuprofen 400mg', sku: 'MED-0003', unit: 'tablet', stock: 8, priceCents: 700 },
+    { name: 'Cetirizine 10mg', sku: 'MED-0004', unit: 'tablet', stock: 60, priceCents: 900 },
+    { name: 'Amoxicillin syrup', sku: 'MED-0005', unit: 'bottle', stock: 5, priceCents: 2200 },
+    { name: 'Vitamin D3', sku: 'MED-0006', unit: 'tablet', stock: 300, priceCents: 1500 },
+    { name: 'Salbutamol inhaler', sku: 'MED-0007', unit: 'unit', stock: 18, priceCents: 3500 },
+    { name: 'Omeprazole 20mg', sku: 'MED-0008', unit: 'capsule', stock: 90, priceCents: 1100 },
+  ];
+  const medicines: { id: string }[] = [];
+  for (const m of medData) medicines.push(await prisma.medicine.create({ data: m }));
+
+  // Prescriptions (decrement stock)
+  let rxCount = 0;
+  for (let i = 0; i < 10; i++) {
+    const n = 1 + Math.floor(Math.random() * 2);
+    const chosen = Array.from({ length: n }, () => pick(medicines));
+    await prisma.prescription.create({
+      data: {
+        number: `RX-2026-${String(i + 1).padStart(6, '0')}`,
+        patientId: pick(patients).id,
+        authorName: 'Dr. Amina Saleh',
+        notes: 'Take after meals.',
+        items: { create: chosen.map((m) => ({ medicineId: m.id, quantity: 1 + Math.floor(Math.random() * 3), dosage: '1x daily' })) },
+      },
+    });
+    rxCount++;
+  }
+
+  console.log(`Seeded ${providers.length} providers, ${patients.length} patients, ${count} appointments, ${invCount} invoices, ${medicines.length} medicines, ${rxCount} prescriptions.`);
   console.log('Login: admin@clinicflow.dev / password123');
 }
 
