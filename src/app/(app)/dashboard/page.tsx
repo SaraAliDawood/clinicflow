@@ -3,15 +3,14 @@ import { toHHMM } from '@/lib/scheduling';
 
 export const dynamic = 'force-dynamic';
 
-const STATUS_COLORS: Record<string, string> = {
-  BOOKED: 'bg-blue-100 text-blue-700',
-  COMPLETED: 'bg-emerald-100 text-emerald-700',
-  CANCELLED: 'bg-slate-200 text-slate-600',
-  NO_SHOW: 'bg-amber-100 text-amber-700',
+const STATUS: Record<string, string> = {
+  BOOKED: 'bg-sky-400/15 text-sky-300',
+  COMPLETED: 'bg-emerald-400/15 text-emerald-300',
+  CANCELLED: 'bg-slate-500/15 text-slate-400',
+  NO_SHOW: 'bg-amber-400/15 text-amber-300',
 };
 
 export default async function DashboardPage() {
-  // "Today" as midnight UTC — appointments store their day the same way.
   const now = new Date();
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
@@ -26,61 +25,65 @@ export default async function DashboardPage() {
   ]);
 
   const booked = appointments.filter((a) => a.status === 'BOOKED').length;
+  const completed = appointments.filter((a) => a.status === 'COMPLETED').length;
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold text-ink">Today · {today.toISOString().slice(0, 10)}</h1>
+      <div>
+        <p className="text-xs font-medium uppercase tracking-widest text-teal-300/80">Overview</p>
+        <h1 className="mt-1 font-display text-2xl font-bold text-white">
+          Today · <span className="text-slate-400">{today.toISOString().slice(0, 10)}</span>
+        </h1>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="Appointments today" value={String(appointments.length)} />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat label="Appointments" value={String(appointments.length)} accent />
         <Stat label="Still booked" value={String(booked)} />
+        <Stat label="Completed" value={String(completed)} />
         <Stat label="Providers · Patients" value={`${providerCount} · ${patientCount}`} />
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white">
-        <h2 className="border-b border-slate-100 px-6 py-4 text-sm font-medium text-slate-600">
-          Today’s schedule
-        </h2>
+      <section className="card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
+          <h2 className="font-display text-sm font-semibold text-white">Today’s schedule</h2>
+          <span className="text-xs text-slate-500">{appointments.length} total</span>
+        </div>
         {appointments.length === 0 ? (
-          <p className="p-6 text-sm text-slate-400">No appointments today.</p>
+          <p className="px-5 py-12 text-center text-sm text-slate-500">No appointments today.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-slate-400">
-              <tr>
-                <th className="px-6 py-3">Time</th>
-                <th className="px-6 py-3">Patient</th>
-                <th className="px-6 py-3">Provider</th>
-                <th className="px-6 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((a) => (
-                <tr key={a.id} className="border-t border-slate-100">
-                  <td className="px-6 py-3 font-mono text-xs">
-                    {toHHMM(a.startMin)}–{toHHMM(a.endMin)}
-                  </td>
-                  <td className="px-6 py-3">{a.patient.name}</td>
-                  <td className="px-6 py-3">{a.provider.name}</td>
-                  <td className="px-6 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[a.status]}`}>
-                      {a.status}
-                    </span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                  <th className="px-5 py-3 font-medium">Time</th>
+                  <th className="px-5 py-3 font-medium">Patient</th>
+                  <th className="px-5 py-3 font-medium">Provider</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {appointments.map((a) => (
+                  <tr key={a.id} className="border-t border-white/[0.05] transition hover:bg-white/[0.03]">
+                    <td className="px-5 py-3 font-mono text-xs text-teal-300">{toHHMM(a.startMin)}–{toHHMM(a.endMin)}</td>
+                    <td className="px-5 py-3 text-slate-200">{a.patient.name}</td>
+                    <td className="px-5 py-3 text-slate-400">{a.provider.name}</td>
+                    <td className="px-5 py-3"><span className={`chip ${STATUS[a.status]}`}>{a.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-ink">{value}</p>
+    <div className="card card-hover p-5">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">{label}</p>
+      <p className={`mt-2 font-display text-3xl font-bold ${accent ? 'text-teal-300' : 'text-white'}`}>{value}</p>
     </div>
   );
 }

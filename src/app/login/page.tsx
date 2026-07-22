@@ -32,67 +32,83 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-ink">ClinicFlow</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {mode === 'login' ? 'Sign in to the scheduler.' : 'Create a staff account.'}
-        </p>
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          {mode === 'register' && (
-            <Field label="Name" type="text" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-          )}
-          <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
-          <Field
-            label="Password"
-            type="password"
-            value={form.password}
-            onChange={(v) => setForm({ ...form, password: v })}
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-lg bg-brand py-2.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60"
-          >
-            {busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
-          </button>
-        </form>
-        <button
-          onClick={() => {
-            setMode(mode === 'login' ? 'register' : 'login');
-            setError(null);
+    <main className="grid min-h-screen lg:grid-cols-2">
+      {/* Brand panel */}
+      <aside className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between p-12">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            background:
+              'radial-gradient(600px 400px at 20% 20%, rgba(45,212,191,0.25), transparent 60%), radial-gradient(600px 500px at 90% 90%, rgba(56,189,248,0.18), transparent 55%)',
           }}
-          className="mt-4 w-full text-center text-sm text-slate-500 hover:text-slate-700"
-        >
-          {mode === 'login' ? 'Need an account? Register' : 'Have an account? Sign in'}
-        </button>
-      </div>
+        />
+        <div className="relative flex items-center gap-2 font-display text-lg font-bold text-white">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-teal-300 to-emerald-400 text-slate-900">C</span>
+          ClinicFlow
+        </div>
+        <div className="relative">
+          <h1 className="font-display text-4xl font-extrabold leading-tight text-white">
+            Scheduling,<br />solved.
+          </h1>
+          <p className="mt-4 max-w-sm text-slate-300">
+            Real-time availability, zero double-bookings, and a live view of your clinic’s day —
+            in one clean console.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2">
+            {['Live availability', 'Conflict-free booking', 'Today at a glance'].map((t) => (
+              <span key={t} className="chip border border-white/10 bg-white/5 text-slate-300">{t}</span>
+            ))}
+          </div>
+        </div>
+        <div className="relative text-xs text-slate-500">Built by Sara Dawood</div>
+      </aside>
+
+      {/* Form panel */}
+      <section className="flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 lg:hidden">
+            <span className="font-display text-xl font-bold text-white">ClinicFlow</span>
+          </div>
+          <h2 className="font-display text-2xl font-bold text-white">
+            {mode === 'login' ? 'Welcome back' : 'Create your account'}
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            {mode === 'login' ? 'Sign in to the scheduler.' : 'Get started in seconds.'}
+          </p>
+
+          <form onSubmit={submit} className="mt-8 space-y-4">
+            {mode === 'register' && (
+              <Field label="Name" type="text" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+            )}
+            <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+            <Field label="Password" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} />
+            {error && <p className="text-sm text-rose-400">{error}</p>}
+            <button type="submit" disabled={busy} className="btn-primary w-full">
+              {busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
+            </button>
+          </form>
+
+          <button
+            onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); }}
+            className="mt-5 w-full text-center text-sm text-slate-400 transition hover:text-teal-300"
+          >
+            {mode === 'login' ? 'Need an account? Register' : 'Have an account? Sign in'}
+          </button>
+
+          <p className="mt-8 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 text-center text-xs text-slate-500">
+            Demo login — <span className="text-slate-300">admin@clinicflow.dev</span> / <span className="text-slate-300">password123</span>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
 
-function Field({
-  label,
-  type,
-  value,
-  onChange,
-}: {
-  label: string;
-  type: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function Field({ label, type, value, onChange }: { label: string; type: string; value: string; onChange: (v: string) => void; }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-600">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-      />
+      <span className="mb-1.5 block text-xs font-medium text-slate-400">{label}</span>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} required className="input" />
     </label>
   );
 }

@@ -4,9 +4,12 @@ export default {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['Sora', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
-        ink: '#0f172a',
-        brand: { DEFAULT: '#0d9488', soft: '#ccfbf1' },
+        brand: { DEFAULT: '#2dd4bf', soft: 'rgba(45,212,191,0.12)' },
       },
     },
   },
