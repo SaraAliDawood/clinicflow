@@ -11,6 +11,9 @@ async function main() {
   console.log('Clearing…');
   await prisma.prescriptionItem.deleteMany();
   await prisma.prescription.deleteMany();
+  await prisma.dispenseItem.deleteMany();
+  await prisma.dispense.deleteMany();
+  await prisma.stockMovement.deleteMany();
   await prisma.medicine.deleteMany();
   await prisma.invoiceItem.deleteMany();
   await prisma.invoice.deleteMany();
@@ -133,8 +136,32 @@ async function main() {
     { name: 'Salbutamol inhaler', sku: 'MED-0007', unit: 'unit', stock: 18, priceCents: 3500 },
     { name: 'Omeprazole 20mg', sku: 'MED-0008', unit: 'capsule', stock: 90, priceCents: 1100 },
   ];
-  const medicines: { id: string }[] = [];
-  for (const m of medData) medicines.push(await prisma.medicine.create({ data: m }));
+  const medicines: { id: string; priceCents: number }[] = [];
+  for (const m of medData) {
+    const created = await prisma.medicine.create({
+      data: { ...m, movements: { create: { delta: m.stock, reason: 'INITIAL', note: 'Opening stock' } } },
+    });
+    medicines.push(created);
+  }
+
+  // A few dispenses (decrement stock + log DISPENSE movements) for realism.
+  let dspCount = 0;
+  for (let i = 0; i < 6; i++) {
+    const med = pick(medicines);
+    const qty = 1 + Math.floor(Math.random() * 3);
+    await prisma.medicine.update({ where: { id: med.id }, data: { stock: { decrement: qty } } });
+    await prisma.stockMovement.create({ data: { medicineId: med.id, delta: -qty, reason: 'DISPENSE', note: `Dispensed ${qty}` } });
+    await prisma.dispense.create({
+      data: {
+        number: `DSP-2026-${String(i + 1).padStart(6, '0')}`,
+        patientId: pick(patients).id,
+        totalCents: qty * med.priceCents,
+        authorName: 'Front Desk',
+        items: { create: { medicineId: med.id, quantity: qty, unitPriceCents: med.priceCents } },
+      },
+    });
+    dspCount++;
+  }
 
   // Prescriptions (decrement stock)
   let rxCount = 0;
@@ -153,7 +180,7 @@ async function main() {
     rxCount++;
   }
 
-  console.log(`Seeded ${providers.length} providers, ${patients.length} patients, ${count} appointments, ${invCount} invoices, ${medicines.length} medicines, ${rxCount} prescriptions.`);
+  console.log(`Seeded ${providers.length} providers, ${patients.length} patients, ${count} appointments, ${invCount} invoices, ${medicines.length} medicines, ${rxCount} prescriptions, ${dspCount} dispenses.`);
   console.log('Login: admin@clinicflow.dev / password123');
 }
 

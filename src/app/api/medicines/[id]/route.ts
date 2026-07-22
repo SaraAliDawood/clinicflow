@@ -9,12 +9,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await params;
     const b = z.object({ restock: z.number().int().optional(), priceCents: z.number().int().nonnegative().optional() }).parse(await req.json());
-    const med = await prisma.medicine.update({
-      where: { id },
-      data: {
-        ...(b.restock ? { stock: { increment: b.restock } } : {}),
-        ...(b.priceCents !== undefined ? { priceCents: b.priceCents } : {}),
-      },
+    const med = await prisma.$transaction(async (tx) => {
+      const updated = await tx.medicine.update({
+        where: { id },
+        data: {
+          ...(b.restock ? { stock: { increment: b.restock } } : {}),
+          ...(b.priceCents !== undefined ? { priceCents: b.priceCents } : {}),
+        },
+      });
+      if (b.restock) {
+        await tx.stockMovement.create({ data: { medicineId: id, delta: b.restock, reason: 'RESTOCK', note: 'Manual restock' } });
+      }
+      return updated;
     });
     return json({ id: med.id, stock: med.stock, priceCents: med.priceCents });
   } catch (err) {

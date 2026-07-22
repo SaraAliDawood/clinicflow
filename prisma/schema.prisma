@@ -67,6 +67,7 @@ model Patient {
   records       MedicalRecord[]
   invoices      Invoice[]
   prescriptions Prescription[]
+  dispenses     Dispense[]
 }
 
 model MedicalRecord {
@@ -133,14 +134,61 @@ model InvoiceItem {
 }
 
 model Medicine {
-  id         String             @id @default(cuid())
-  name       String
-  sku        String             @unique
-  unit       String             @default("unit")
-  stock      Int                @default(0)
-  priceCents Int                @default(0)
-  createdAt  DateTime           @default(now())
-  items      PrescriptionItem[]
+  id            String             @id @default(cuid())
+  name          String
+  sku           String             @unique
+  unit          String             @default("unit")
+  stock         Int                @default(0)
+  priceCents    Int                @default(0)
+  createdAt     DateTime           @default(now())
+  items         PrescriptionItem[]
+  dispenseItems DispenseItem[]
+  movements     StockMovement[]
+
+  @@index([name])
+}
+
+enum StockReason {
+  INITIAL
+  RESTOCK
+  DISPENSE
+  ADJUST
+}
+
+model StockMovement {
+  id         String      @id @default(cuid())
+  medicine   Medicine    @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  medicineId String
+  delta      Int
+  reason     StockReason
+  note       String?
+  createdAt  DateTime    @default(now())
+
+  @@index([medicineId])
+  @@index([createdAt])
+}
+
+model Dispense {
+  id         String         @id @default(cuid())
+  number     String         @unique
+  patient    Patient?       @relation(fields: [patientId], references: [id])
+  patientId  String?
+  totalCents Int            @default(0)
+  authorName String?
+  createdAt  DateTime       @default(now())
+  items      DispenseItem[]
+
+  @@index([createdAt])
+}
+
+model DispenseItem {
+  id             String   @id @default(cuid())
+  dispense       Dispense @relation(fields: [dispenseId], references: [id], onDelete: Cascade)
+  dispenseId     String
+  medicine       Medicine @relation(fields: [medicineId], references: [id])
+  medicineId     String
+  quantity       Int
+  unitPriceCents Int
 }
 
 model Prescription {

@@ -2,11 +2,15 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireUser, json, handleError } from '@/lib/http';
 
-// GET /api/medicines — inventory, low stock first.
-export async function GET() {
+// GET /api/medicines?query= — inventory search (low stock first).
+export async function GET(req: Request) {
   const guard = await requireUser();
   if ('response' in guard) return guard.response;
-  const medicines = await prisma.medicine.findMany({ orderBy: { stock: 'asc' } });
+  const query = new URL(req.url).searchParams.get('query')?.trim();
+  const medicines = await prisma.medicine.findMany({
+    where: query ? { OR: [{ name: { contains: query } }, { sku: { contains: query } }] } : undefined,
+    orderBy: { stock: 'asc' },
+  });
   return json(medicines);
 }
 
@@ -24,7 +28,12 @@ export async function POST(req: Request) {
   if ('response' in guard) return guard.response;
   try {
     const b = schema.parse(await req.json());
-    const med = await prisma.medicine.create({ data: b });
+    const med = await prisma.medicine.create({
+      data: {
+        ...b,
+        movements: b.stock > 0 ? { create: { delta: b.stock, reason: 'INITIAL', note: 'Opening stock' } } : undefined,
+      },
+    });
     return json(med, 201);
   } catch (err) {
     return handleError(err);
