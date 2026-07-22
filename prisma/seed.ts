@@ -9,6 +9,8 @@ const pick = <T>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
 async function main() {
   console.log('Clearing…');
+  await prisma.invoiceItem.deleteMany();
+  await prisma.invoice.deleteMany();
   await prisma.appointment.deleteMany();
   await prisma.medicalRecord.deleteMany();
   await prisma.patient.deleteMany();
@@ -88,7 +90,36 @@ async function main() {
     }
   }
 
-  console.log(`Seeded ${providers.length} providers, ${patients.length} patients, ${count} appointments.`);
+  // Invoices
+  const services = [
+    { description: 'Consultation', unitPriceCents: 15000 },
+    { description: 'Lab test — CBC', unitPriceCents: 22000 },
+    { description: 'X-ray', unitPriceCents: 30000 },
+    { description: 'Follow-up visit', unitPriceCents: 10000 },
+    { description: 'Vaccination', unitPriceCents: 8000 },
+  ];
+  const invStatus = ['PAID', 'PAID', 'PAID', 'UNPAID', 'UNPAID', 'VOID'] as const;
+  let invCount = 0;
+  for (let i = 0; i < 18; i++) {
+    const lineN = 1 + Math.floor(Math.random() * 3);
+    const items = Array.from({ length: lineN }, () => {
+      const s = pick(services);
+      return { description: s.description, quantity: 1 + Math.floor(Math.random() * 2), unitPriceCents: s.unitPriceCents };
+    });
+    const total = items.reduce((sum, it) => sum + it.quantity * it.unitPriceCents, 0);
+    await prisma.invoice.create({
+      data: {
+        number: `INV-2026-${String(i + 1).padStart(6, '0')}`,
+        patientId: pick(patients).id,
+        status: pick(invStatus as unknown as string[]) as never,
+        totalCents: total,
+        items: { create: items },
+      },
+    });
+    invCount++;
+  }
+
+  console.log(`Seeded ${providers.length} providers, ${patients.length} patients, ${count} appointments, ${invCount} invoices.`);
   console.log('Login: admin@clinicflow.dev / password123');
 }
 

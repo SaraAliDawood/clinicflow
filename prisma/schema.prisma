@@ -63,6 +63,7 @@ model Patient {
   createdAt    DateTime        @default(now())
   appointments Appointment[]
   records      MedicalRecord[]
+  invoices     Invoice[]
 }
 
 model MedicalRecord {
@@ -93,4 +94,37 @@ model Appointment {
 
   @@index([providerId, date])
   @@index([date])
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  VOID
+}
+
+model Invoice {
+  id         String        @id @default(cuid())
+  number     String        @unique
+  patient    Patient       @relation(fields: [patientId], references: [id])
+  patientId  String
+  status     InvoiceStatus @default(UNPAID)
+  currency   String        @default("AED")
+  // Denormalized total (minor units) computed from items at write time.
+  totalCents Int           @default(0)
+  notes      String?
+  dueAt      DateTime?
+  issuedAt   DateTime      @default(now())
+  items      InvoiceItem[]
+
+  @@index([status])
+  @@index([issuedAt])
+}
+
+model InvoiceItem {
+  id             String  @id @default(cuid())
+  invoice        Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId      String
+  description    String
+  quantity       Int
+  unitPriceCents Int
 }
