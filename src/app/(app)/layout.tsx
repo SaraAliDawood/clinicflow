@@ -5,6 +5,7 @@ import LogoutButton from '@/components/LogoutButton';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/patients', label: 'Patients' },
   { href: '/book', label: 'Book' },
 ];
 
@@ -15,7 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-[#080b11]/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+        <div className="mx-auto flex w-[88%] max-w-[1600px] items-center justify-between py-3">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2 font-display font-bold text-white">
               <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-teal-300 to-emerald-400 text-sm text-slate-900">C</span>
@@ -36,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>
+      <main className="mx-auto w-[88%] max-w-[1600px] py-8">{children}</main>
     </div>
   );
 }

@@ -10,6 +10,7 @@ const pick = <T>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 async function main() {
   console.log('Clearing…');
   await prisma.appointment.deleteMany();
+  await prisma.medicalRecord.deleteMany();
   await prisma.patient.deleteMany();
   await prisma.provider.deleteMany();
   await prisma.user.deleteMany();
@@ -33,15 +34,30 @@ async function main() {
 
   const patients = [];
   for (let i = 0; i < 30; i++) {
-    patients.push(
-      await prisma.patient.create({
-        data: {
-          name: `${pick(FIRST)} ${pick(LAST)}`,
-          email: `patient${i + 1}@example.com`,
-          phone: `+9715${Math.floor(1000000 + Math.random() * 8999999)}`,
-        },
-      }),
-    );
+    const blood = ['A+', 'O+', 'B+', 'AB+', 'O-', 'A-'];
+    const genders = ['Female', 'Male'];
+    const allergyPool = ['None', 'Penicillin', 'Peanuts', 'Pollen', 'Lactose'];
+    const p = await prisma.patient.create({
+      data: {
+        name: `${pick(FIRST)} ${pick(LAST)}`,
+        email: `patient${i + 1}@example.com`,
+        phone: `+9715${Math.floor(1000000 + Math.random() * 8999999)}`,
+        gender: pick(genders),
+        bloodType: pick(blood),
+        allergies: pick(allergyPool),
+        dob: new Date(1970 + Math.floor(Math.random() * 45), Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 27)),
+      },
+    });
+    // Give the first patients a bit of medical history.
+    if (i < 10) {
+      await prisma.medicalRecord.createMany({
+        data: [
+          { patientId: p.id, kind: 'VISIT', title: 'Initial consultation', details: 'Routine check-up, vitals normal.', authorName: 'Dr. Amina Saleh' },
+          { patientId: p.id, kind: 'DIAGNOSIS', title: pick(['Seasonal allergy', 'Mild hypertension', 'Vitamin D deficiency']), details: 'Follow-up in 4 weeks.', authorName: 'Dr. Karim Nasser' },
+        ],
+      });
+    }
+    patients.push(p);
   }
 
   // Book a few non-overlapping slots per provider across today + next 3 days.

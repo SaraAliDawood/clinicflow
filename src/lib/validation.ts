@@ -15,6 +15,11 @@ export const patientCreateSchema = z.object({
   name: z.string().min(1),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
+  dob: z.string().optional().or(z.literal('')),
+  gender: z.string().optional().or(z.literal('')),
+  bloodType: z.string().optional().or(z.literal('')),
+  allergies: z.string().optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
 });
 
 export const appointmentCreateSchema = z.object({

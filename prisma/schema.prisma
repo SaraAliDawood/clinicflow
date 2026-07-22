@@ -1,4 +1,4 @@
-// ClinicFlow — appointment scheduling.
+// ClinicFlow — clinic management system.
 // SQLite for zero-config local runs; switch `provider` to "postgresql" for prod.
 
 generator client {
@@ -22,6 +22,13 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
+enum RecordKind {
+  VISIT
+  NOTE
+  DIAGNOSIS
+  LAB
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -35,21 +42,40 @@ model Provider {
   id           String        @id @default(cuid())
   name         String
   specialty    String
-  // Working window + slot length, in minutes from midnight.
-  workStartMin Int           @default(540) // 09:00
-  workEndMin   Int           @default(1020) // 17:00
+  workStartMin Int           @default(540)
+  workEndMin   Int           @default(1020)
   slotMinutes  Int           @default(30)
   active       Boolean       @default(true)
   appointments Appointment[]
 }
 
 model Patient {
-  id           String        @id @default(cuid())
+  id           String          @id @default(cuid())
   name         String
   email        String?
   phone        String?
-  createdAt    DateTime      @default(now())
+  dob          DateTime?
+  gender       String?
+  bloodType    String?
+  allergies    String?
+  address      String?
+  notes        String?
+  createdAt    DateTime        @default(now())
   appointments Appointment[]
+  records      MedicalRecord[]
+}
+
+model MedicalRecord {
+  id         String     @id @default(cuid())
+  patient    Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId  String
+  kind       RecordKind @default(NOTE)
+  title      String
+  details    String?
+  authorName String?
+  createdAt  DateTime   @default(now())
+
+  @@index([patientId])
 }
 
 model Appointment {
@@ -58,7 +84,6 @@ model Appointment {
   providerId String
   patient    Patient           @relation(fields: [patientId], references: [id])
   patientId  String
-  // The calendar day (midnight) plus the time window within it, in minutes.
   date       DateTime
   startMin   Int
   endMin     Int
