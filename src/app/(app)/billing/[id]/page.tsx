@@ -53,7 +53,8 @@ export default function InvoiceDetail({ params }: { params: Promise<{ id: string
           <p className="text-sm text-slate-400">{inv.patient.phone || inv.patient.email || ''}</p>
         </div>
 
-        <table className="mt-6 w-full text-sm">
+        <div className="mt-6 overflow-x-auto">
+        <table className="w-full min-w-[420px] text-sm">
           <thead>
             <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
               <th className="py-2 font-medium">Description</th>
@@ -73,6 +74,7 @@ export default function InvoiceDetail({ params }: { params: Promise<{ id: string
             ))}
           </tbody>
         </table>
+        </div>
 
         <div className="mt-4 flex justify-end border-t border-white/[0.08] pt-4">
           <div className="text-right">

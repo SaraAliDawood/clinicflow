@@ -69,17 +69,17 @@ export default function BookPage() {
       </div>
 
       <div className="card grid gap-4 p-5 sm:grid-cols-3">
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-xs font-medium text-slate-400">Provider</span>
           <select value={providerId} onChange={(e) => setProviderId(e.target.value)} className="input">
             {providers.map((p) => <option key={p.id} value={p.id} className="bg-[#0e131b]">{p.name} — {p.specialty} ({p.hours})</option>)}
           </select>
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-xs font-medium text-slate-400">Date</span>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input [color-scheme:dark]" />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input min-w-0 [color-scheme:dark]" />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-xs font-medium text-slate-400">Patient</span>
           <select value={patientId} onChange={(e) => setPatientId(e.target.value)} className="input">
             <option value="" className="bg-[#0e131b]">Select…</option>
@@ -89,7 +89,7 @@ export default function BookPage() {
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-xs font-medium text-slate-400">Quick-add patient</span>
           <input value={newPatient} onChange={(e) => setNewPatient(e.target.value)} placeholder="Patient name" className="input w-56" />
         </label>

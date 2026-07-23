@@ -90,7 +90,8 @@ export default function TeamPage() {
         <section className="space-y-4">
           <h2 className="font-display text-lg font-semibold text-white">Staff accounts <span className="text-slate-500">({staff.length})</span></h2>
           <div className="card overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-sm">
               <thead><tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                 <th className="px-5 py-3 font-medium">Name</th><th className="px-5 py-3 font-medium">Email</th><th className="px-5 py-3 font-medium">Role</th>
               </tr></thead>
@@ -109,6 +110,7 @@ export default function TeamPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </section>
       )}

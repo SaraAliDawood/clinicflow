@@ -74,7 +74,8 @@ export default function PrescriptionsPage() {
       )}
 
       <div className="card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
           <thead><tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
             <th className="px-5 py-3 font-medium">Rx</th><th className="px-5 py-3 font-medium">Patient</th>
             <th className="px-5 py-3 font-medium">Items</th><th className="px-5 py-3 font-medium">By</th><th className="px-5 py-3 font-medium">Date</th>
@@ -95,6 +96,7 @@ export default function PrescriptionsPage() {
             {!loading && list.length === 0 && <tr><td colSpan={5} className="px-5 py-12 text-center text-slate-500">No prescriptions yet.</td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
